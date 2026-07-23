@@ -1,0 +1,22 @@
+diff --git a/src/gtsam_points/registration/alignment.cpp b/src/gtsam_points/registration/alignment.cpp
+index 0dc7335..c352000 100644
+--- a/src/gtsam_points/registration/alignment.cpp
++++ b/src/gtsam_points/registration/alignment.cpp
+@@ -58,7 +58,7 @@ align_points_4dof(const Eigen::Vector4d& target1, const Eigen::Vector4d& target2
+   }
+ 
+   Eigen::Isometry3d T_target_source = Eigen::Isometry3d::Identity();
+-  T_target_source.linear().topLeftCorner<2, 2>(0, 0) = U * S.asDiagonal() * V.transpose();
++  T_target_source.linear().topLeftCorner<2, 2>() = U * S.asDiagonal() * V.transpose();
+   T_target_source.translation() = mean_target.head<3>() - T_target_source.linear() * mean_source.head<3>();
+ 
+   return T_target_source;
+@@ -132,7 +132,7 @@ align_points_4dof(const Eigen::Vector4d* target_points, const Eigen::Vector4d* s
+   }
+ 
+   Eigen::Isometry3d T_target_source = Eigen::Isometry3d::Identity();
+-  T_target_source.linear().topLeftCorner<2, 2>(0, 0) = U * S.asDiagonal() * V.transpose();
++  T_target_source.linear().topLeftCorner<2, 2>() = U * S.asDiagonal() * V.transpose();
+   T_target_source.translation() = mean_target.head<3>() - T_target_source.linear() * mean_source.head<3>();
+ 
+   return T_target_source;

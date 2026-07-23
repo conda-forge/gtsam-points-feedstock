@@ -3,7 +3,7 @@ schema_version: 1
 context:
   name: gtsam-points
   version: "1.2.1"
-  build_number: 3
+  build_number: 5
 
 recipe:
   name: ${{ name|lower }}-split
@@ -14,6 +14,9 @@ source:
     sha256: 2ab79ff2797398a60a6ca9ce592f4da66607f5a3a9d4eefcde113b94ba1eb8c0
     patches:
       - 001-unvendor-nanoflann.patch
+      # Fix segfault in align_points_4dof with Eigen 5 (invalid runtime
+      # arguments passed to the fixed-size topLeftCorner<2, 2> accessor).
+      - 002-fix-eigen5-4dof-alignment.patch
 
 build:
   number: ${{ build_number }}
