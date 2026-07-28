@@ -3,7 +3,7 @@ schema_version: 1
 context:
   name: gtsam-points
   version: "1.2.2"
-  build_number: 0
+  build_number: 1
 
 recipe:
   name: ${{ name|lower }}-split
@@ -58,7 +58,7 @@ outputs:
         - cmake --build build/ --config Release
         - cmake --install build/ --config Release
         # Build tests always, but run them only on native CPU build.
-        - cmake -S . -B build -DBUILD_TESTS=ON
+        - cmake -S . -B build -DBUILD_TESTS=ON -DCMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE=PRE_TEST
         - cmake --build build/
         - if: build_platform == target_platform and cuda_compiler_version == "None"
           then:
