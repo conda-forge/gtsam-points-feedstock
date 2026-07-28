@@ -3,9 +3,3 @@ channel_sources:
 gtsam:
 - '4.2.*'
 - '4.3deva1'
-tbb_devel:
-- '2022'
-- '2023'
-zip_keys:
-- - gtsam
-  - tbb_devel
