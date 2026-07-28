@@ -30,12 +30,9 @@ libboost_devel:
 target_platform:
 - linux-64
 tbb_devel:
-- '2022'
 - '2023'
 zip_keys:
 - - c_compiler_version
   - cxx_compiler_version
   - c_stdlib_version
   - cuda_compiler_version
-- - gtsam
-  - tbb_devel
