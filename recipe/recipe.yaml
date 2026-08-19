@@ -100,6 +100,13 @@ outputs:
           then:
             - gtsam >=4.3deva1,<4.3.0
       ignore_run_exports:
+        by_name:
+          - if: cuda_compiler_version != "None"
+            then:
+              - libcublas
+              - libcurand
+              - libcusparse
+              - libcusolver
         from_package:
           - if: match(gtsam, ">=4.3deva1,<4.3.0")
             then:
