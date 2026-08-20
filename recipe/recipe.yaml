@@ -3,7 +3,7 @@ schema_version: 1
 context:
   name: gtsam-points
   version: "1.2.1"
-  build_number: 3
+  build_number: 8
 
 recipe:
   name: ${{ name|lower }}-split
@@ -115,7 +115,6 @@ outputs:
         - if: cuda_compiler_version != "None"
           then:
             - cuda-cudart-dev
-            - cuda-version ${{ cuda_compiler_version }}.*
       run_exports:
         - ${{ pin_subpackage('gtsam-points', upper_bound='x.x.x') }}
     tests:
