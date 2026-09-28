@@ -13,7 +13,12 @@ GTSAM 4.3.0 removed or moved several APIs that gtsam_points 1.2.2 uses:
 The changes keep building with GTSAM 4.2 and 4.3a1: make_shared.h and
 NoiseModelFactorN.h are detected with __has_include, the damping parameters
 are detected by member (4.3a1 and 4.3.0 share GTSAM_VERSION_NUMERIC), and the
-optimizers use the public graph() accessor.
+optimizers use the public graph() accessor. gtsam::make_shared calls go
+through gtsam_points::make_shared_ptr, named so that it cannot be ambiguous
+with std::make_shared or boost::make_shared in downstream code.
+
+Tested by building the library and the tests, and running ctest, against
+GTSAM 4.2.2, 4.3a1 and 4.3.0.
 
 diff --git a/include/gtsam_points/factors/balm_feature.hpp b/include/gtsam_points/factors/balm_feature.hpp
 index f98d586..8ce4a7b 100644
@@ -141,7 +146,7 @@ index 07ae484..3a6d769 100644
  
      if (yi < y0) {
 diff --git a/include/gtsam_points/util/gtsam_migration.hpp b/include/gtsam_points/util/gtsam_migration.hpp
-index 5851904..21fb6f5 100644
+index 5851904..2dce29b 100644
 --- a/include/gtsam_points/util/gtsam_migration.hpp
 +++ b/include/gtsam_points/util/gtsam_migration.hpp
 @@ -4,8 +4,13 @@
@@ -158,15 +163,16 @@ index 5851904..21fb6f5 100644
  #include <gtsam/base/Matrix.h>
  
  namespace gtsam_points {
-@@ -53,4 +58,14 @@ constexpr auto NoneValue = boost::none;
+@@ -53,4 +58,15 @@ constexpr auto NoneValue = boost::none;
  
  #endif
  
-+/// Allocate a shared object of the smart pointer type used by GTSAM.
++/// Allocate a gtsam_points::shared_ptr<T>, the smart pointer type used by GTSAM.
++/// Not named make_shared to avoid ambiguities with std::make_shared and boost::make_shared.
 +template <typename T, typename... Args>
-+auto make_shared(Args&&... args) {
++auto make_shared_ptr(Args&&... args) {
 +#ifdef GTSAM_POINTS_HAS_GTSAM_MAKE_SHARED
-+  return gtsam_points::make_shared<T>(std::forward<Args>(args)...);
++  return gtsam::make_shared<T>(std::forward<Args>(args)...);
 +#else
 +  return std::make_shared<T>(std::forward<Args>(args)...);
 +#endif
@@ -174,7 +180,7 @@ index 5851904..21fb6f5 100644
 +
  }  // namespace gtsam_points
 diff --git a/include/gtsam_points/util/jacobian_test.hpp b/include/gtsam_points/util/jacobian_test.hpp
-index bcb1bcd..c068c3b 100644
+index bcb1bcd..9faf18f 100644
 --- a/include/gtsam_points/util/jacobian_test.hpp
 +++ b/include/gtsam_points/util/jacobian_test.hpp
 @@ -19,7 +19,7 @@ auto generate_factor(std::mt19937& mt) {
@@ -182,12 +188,12 @@ index bcb1bcd..c068c3b 100644
  
    gtsam::Vector3 rel_pose = Eigen::Vector3d(udist(mt), udist(mt), udist(mt));
 -  return gtsam::make_shared<gtsam::BetweenFactor<gtsam::Vector3>>(0, 1, rel_pose, gtsam::noiseModel::Isotropic::Sigma(6, 1.0));
-+  return gtsam_points::make_shared<gtsam::BetweenFactor<gtsam::Vector3>>(0, 1, rel_pose, gtsam::noiseModel::Isotropic::Sigma(6, 1.0));
++  return gtsam_points::make_shared_ptr<gtsam::BetweenFactor<gtsam::Vector3>>(0, 1, rel_pose, gtsam::noiseModel::Isotropic::Sigma(6, 1.0));
  }
  
  gtsam::Values generate_values(std::mt19937& mt) {
 diff --git a/src/demo/demo_benchmark.cpp b/src/demo/demo_benchmark.cpp
-index 0071aa0..01db410 100644
+index 0071aa0..d143922 100644
 --- a/src/demo/demo_benchmark.cpp
 +++ b/src/demo/demo_benchmark.cpp
 @@ -187,11 +187,11 @@ void benchmark_alignment(const std::string& factor_type, int num_threads, int nu
@@ -195,12 +201,12 @@ index 0071aa0..01db410 100644
        for (int j = i + 1; j < 5; j++) {
          if (factor_type == "GICP") {
 -          auto factor = gtsam::make_shared<gtsam_points::IntegratedGICPFactor>(i, j, frames[i], frames[j], trees[i]);
-+          auto factor = gtsam_points::make_shared<gtsam_points::IntegratedGICPFactor>(i, j, frames[i], frames[j], trees[i]);
++          auto factor = gtsam_points::make_shared_ptr<gtsam_points::IntegratedGICPFactor>(i, j, frames[i], frames[j], trees[i]);
            factor->set_num_threads(num_threads);
            graph.add(factor);
          } else if (factor_type == "VGICP") {
 -          auto factor = gtsam::make_shared<gtsam_points::IntegratedVGICPFactor>(i, j, voxels[i], frames[j]);
-+          auto factor = gtsam_points::make_shared<gtsam_points::IntegratedVGICPFactor>(i, j, voxels[i], frames[j]);
++          auto factor = gtsam_points::make_shared_ptr<gtsam_points::IntegratedVGICPFactor>(i, j, voxels[i], frames[j]);
            factor->set_num_threads(num_threads);
            graph.add(factor);
          } else if (factor_type == "VGICP_GPU") {
@@ -209,12 +215,12 @@ index 0071aa0..01db410 100644
            const auto buffer = stream_buffer.second;
  
 -          auto factor = gtsam::make_shared<gtsam_points::IntegratedVGICPFactorGPU>(i, j, voxels[i], frames[j], stream, buffer);
-+          auto factor = gtsam_points::make_shared<gtsam_points::IntegratedVGICPFactorGPU>(i, j, voxels[i], frames[j], stream, buffer);
++          auto factor = gtsam_points::make_shared_ptr<gtsam_points::IntegratedVGICPFactorGPU>(i, j, voxels[i], frames[j], stream, buffer);
            graph.add(factor);
  #else
            std::cerr << "error: gtsam_points was built without CUDA!!" << std::endl;
 diff --git a/src/demo/demo_continuous_time.cpp b/src/demo/demo_continuous_time.cpp
-index de1ebc8..aeec623 100644
+index de1ebc8..9167f3a 100644
 --- a/src/demo/demo_continuous_time.cpp
 +++ b/src/demo/demo_continuous_time.cpp
 @@ -144,11 +144,11 @@ public:
@@ -222,17 +228,17 @@ index de1ebc8..aeec623 100644
      gtsam::NonlinearFactor::shared_ptr factor;
      if (factor_types[factor_type] == std::string("CT-ICP")) {
 -      auto f = gtsam::make_shared<gtsam_points::IntegratedCT_ICPFactor>(0, 1, deskewed_frames[data_id], raw_frames[data_id]);
-+      auto f = gtsam_points::make_shared<gtsam_points::IntegratedCT_ICPFactor>(0, 1, deskewed_frames[data_id], raw_frames[data_id]);
++      auto f = gtsam_points::make_shared_ptr<gtsam_points::IntegratedCT_ICPFactor>(0, 1, deskewed_frames[data_id], raw_frames[data_id]);
        f->set_max_correspondence_distance(max_correspondence_distance);
        factor = f;
      } else if (factor_types[factor_type] == std::string("CT-GICP")) {
 -      auto f = gtsam::make_shared<gtsam_points::IntegratedCT_GICPFactor>(0, 1, deskewed_frames[data_id], raw_frames[data_id]);
-+      auto f = gtsam_points::make_shared<gtsam_points::IntegratedCT_GICPFactor>(0, 1, deskewed_frames[data_id], raw_frames[data_id]);
++      auto f = gtsam_points::make_shared_ptr<gtsam_points::IntegratedCT_GICPFactor>(0, 1, deskewed_frames[data_id], raw_frames[data_id]);
        f->set_max_correspondence_distance(max_correspondence_distance);
        factor = f;
      } else if (factor_types[factor_type] == std::string("CT-ICP-EXPR")) {
 diff --git a/src/demo/demo_matching_cost_factors.cpp b/src/demo/demo_matching_cost_factors.cpp
-index fb8bf2b..c82078d 100644
+index fb8bf2b..24eb2db 100644
 --- a/src/demo/demo_matching_cost_factors.cpp
 +++ b/src/demo/demo_matching_cost_factors.cpp
 @@ -202,27 +202,27 @@ public:
@@ -240,36 +246,36 @@ index fb8bf2b..c82078d 100644
      const gtsam_points::PointCloud::ConstPtr& source) {
      if (factor_types[factor_type] == std::string("ICP")) {
 -      auto factor = gtsam::make_shared<gtsam_points::IntegratedICPFactor>(target_key, source_key, target, source);
-+      auto factor = gtsam_points::make_shared<gtsam_points::IntegratedICPFactor>(target_key, source_key, target, source);
++      auto factor = gtsam_points::make_shared_ptr<gtsam_points::IntegratedICPFactor>(target_key, source_key, target, source);
        factor->set_correspondence_update_tolerance(correspondence_update_tolerance_rot, correspondence_update_tolerance_trans);
        factor->set_num_threads(num_threads);
        return factor;
      } else if (factor_types[factor_type] == std::string("ICP_PLANE")) {
 -      auto factor = gtsam::make_shared<gtsam_points::IntegratedPointToPlaneICPFactor>(target_key, source_key, target, source);
-+      auto factor = gtsam_points::make_shared<gtsam_points::IntegratedPointToPlaneICPFactor>(target_key, source_key, target, source);
++      auto factor = gtsam_points::make_shared_ptr<gtsam_points::IntegratedPointToPlaneICPFactor>(target_key, source_key, target, source);
        factor->set_correspondence_update_tolerance(correspondence_update_tolerance_rot, correspondence_update_tolerance_trans);
        factor->set_num_threads(num_threads);
        return factor;
      } else if (factor_types[factor_type] == std::string("GICP")) {
 -      auto factor = gtsam::make_shared<gtsam_points::IntegratedGICPFactor>(target_key, source_key, target, source);
-+      auto factor = gtsam_points::make_shared<gtsam_points::IntegratedGICPFactor>(target_key, source_key, target, source);
++      auto factor = gtsam_points::make_shared_ptr<gtsam_points::IntegratedGICPFactor>(target_key, source_key, target, source);
        factor->set_correspondence_update_tolerance(correspondence_update_tolerance_rot, correspondence_update_tolerance_trans);
        factor->set_num_threads(num_threads);
        return factor;
      } else if (factor_types[factor_type] == std::string("VGICP")) {
 -      auto factor = gtsam::make_shared<gtsam_points::IntegratedVGICPFactor>(target_key, source_key, target_voxelmap, source);
-+      auto factor = gtsam_points::make_shared<gtsam_points::IntegratedVGICPFactor>(target_key, source_key, target_voxelmap, source);
++      auto factor = gtsam_points::make_shared_ptr<gtsam_points::IntegratedVGICPFactor>(target_key, source_key, target_voxelmap, source);
        factor->set_num_threads(num_threads);
        return factor;
      } else if (factor_types[factor_type] == std::string("VGICP_GPU")) {
  #ifdef GTSAM_POINTS_USE_CUDA
 -      return gtsam::make_shared<gtsam_points::IntegratedVGICPFactorGPU>(target_key, source_key, target_voxelmap_gpu, source);
-+      return gtsam_points::make_shared<gtsam_points::IntegratedVGICPFactorGPU>(target_key, source_key, target_voxelmap_gpu, source);
++      return gtsam_points::make_shared_ptr<gtsam_points::IntegratedVGICPFactorGPU>(target_key, source_key, target_voxelmap_gpu, source);
  #endif
      }
  
 diff --git a/src/example/advanced_frame_manipulation.cpp b/src/example/advanced_frame_manipulation.cpp
-index dbb0817..24b6bf6 100644
+index dbb0817..d4d6ee8 100644
 --- a/src/example/advanced_frame_manipulation.cpp
 +++ b/src/example/advanced_frame_manipulation.cpp
 @@ -54,12 +54,12 @@ int main(int argc, char** argv) {
@@ -277,18 +283,18 @@ index dbb0817..24b6bf6 100644
  
    // Fix the target pose
 -  auto prior_factor = gtsam::make_shared<gtsam::PriorFactor<gtsam::Pose3>>(0, gtsam::Pose3(), gtsam::noiseModel::Isotropic::Precision(6, 1e6));
-+  auto prior_factor = gtsam_points::make_shared<gtsam::PriorFactor<gtsam::Pose3>>(0, gtsam::Pose3(), gtsam::noiseModel::Isotropic::Precision(6, 1e6));
++  auto prior_factor = gtsam_points::make_shared_ptr<gtsam::PriorFactor<gtsam::Pose3>>(0, gtsam::Pose3(), gtsam::noiseModel::Isotropic::Precision(6, 1e6));
    graph.add(prior_factor);
  
    // Create an ICP factor with std::shared_ptr<std::vector<Eigen::Vector4d>>
    // Note that you need to include "integrated_icp_factor_impl.hpp" when you feed a custom data to scan matching factors
 -  auto icp_factor = gtsam::make_shared<gtsam_points::IntegratedICPFactor_<std::vector<Eigen::Vector4d>, std::vector<Eigen::Vector4d>>>(0, 1, target, source, target_tree);
-+  auto icp_factor = gtsam_points::make_shared<gtsam_points::IntegratedICPFactor_<std::vector<Eigen::Vector4d>, std::vector<Eigen::Vector4d>>>(0, 1, target, source, target_tree);
++  auto icp_factor = gtsam_points::make_shared_ptr<gtsam_points::IntegratedICPFactor_<std::vector<Eigen::Vector4d>, std::vector<Eigen::Vector4d>>>(0, 1, target, source, target_tree);
    graph.add(icp_factor);
  
    gtsam::Values values;
 diff --git a/src/example/advanced_scan_matching.cpp b/src/example/advanced_scan_matching.cpp
-index 82a954a..83b1a4d 100644
+index 82a954a..e35cfc8 100644
 --- a/src/example/advanced_scan_matching.cpp
 +++ b/src/example/advanced_scan_matching.cpp
 @@ -67,7 +67,7 @@ int main(int argc, char** argv) {
@@ -296,12 +302,12 @@ index 82a954a..83b1a4d 100644
        // Create an ICP factor between target (iVox) and source (current frame)
        auto icp_factor =
 -        gtsam::make_shared<gtsam_points::IntegratedGICPFactor_<gtsam_points::iVox, gtsam_points::PointCloud>>(0, 1, ivox, frame, ivox);
-+        gtsam_points::make_shared<gtsam_points::IntegratedGICPFactor_<gtsam_points::iVox, gtsam_points::PointCloud>>(0, 1, ivox, frame, ivox);
++        gtsam_points::make_shared_ptr<gtsam_points::IntegratedGICPFactor_<gtsam_points::iVox, gtsam_points::PointCloud>>(0, 1, ivox, frame, ivox);
        icp_factor->set_num_threads(num_threads);
        graph.add(icp_factor);
  
 diff --git a/src/example/basic_frame_manipulation.cpp b/src/example/basic_frame_manipulation.cpp
-index 9f56e2b..2223aef 100644
+index 9f56e2b..12eba70 100644
 --- a/src/example/basic_frame_manipulation.cpp
 +++ b/src/example/basic_frame_manipulation.cpp
 @@ -58,7 +58,7 @@ int main(int argc, char** argv) {
@@ -309,12 +315,12 @@ index 9f56e2b..2223aef 100644
    base_frame2->points = points_4d.data();
  
 -  auto icp_factor = gtsam::make_shared<gtsam_points::IntegratedICPFactor>(0, 1, base_frame, base_frame2);
-+  auto icp_factor = gtsam_points::make_shared<gtsam_points::IntegratedICPFactor>(0, 1, base_frame, base_frame2);
++  auto icp_factor = gtsam_points::make_shared_ptr<gtsam_points::IntegratedICPFactor>(0, 1, base_frame, base_frame2);
  
    // If you are interested in using your custom classes with gtsam_points, see "advanced_frame_manipulation.cpp".
  
 diff --git a/src/example/basic_scan_matching.cpp b/src/example/basic_scan_matching.cpp
-index fdf8f9e..a5bd90d 100644
+index fdf8f9e..8df27bf 100644
 --- a/src/example/basic_scan_matching.cpp
 +++ b/src/example/basic_scan_matching.cpp
 @@ -31,11 +31,11 @@ int main(int argc, char** argv) {
@@ -322,17 +328,17 @@ index fdf8f9e..a5bd90d 100644
  
    // Fix the target pose at the origin
 -  auto prior_factor = gtsam::make_shared<gtsam::PriorFactor<gtsam::Pose3>>(0, gtsam::Pose3(), gtsam::noiseModel::Isotropic::Precision(6, 1e6));
-+  auto prior_factor = gtsam_points::make_shared<gtsam::PriorFactor<gtsam::Pose3>>(0, gtsam::Pose3(), gtsam::noiseModel::Isotropic::Precision(6, 1e6));
++  auto prior_factor = gtsam_points::make_shared_ptr<gtsam::PriorFactor<gtsam::Pose3>>(0, gtsam::Pose3(), gtsam::noiseModel::Isotropic::Precision(6, 1e6));
    graph.add(prior_factor);
  
    // Create an ICP factor between target and source poses
 -  auto icp_factor = gtsam::make_shared<gtsam_points::IntegratedICPFactor>(0, 1, target_frame, source_frame);
-+  auto icp_factor = gtsam_points::make_shared<gtsam_points::IntegratedICPFactor>(0, 1, target_frame, source_frame);
++  auto icp_factor = gtsam_points::make_shared_ptr<gtsam_points::IntegratedICPFactor>(0, 1, target_frame, source_frame);
    icp_factor->set_max_correspondence_distance(5.0);
    graph.add(icp_factor);
  
 diff --git a/src/gtsam_points/factors/bundle_adjustment_factor_evm.cpp b/src/gtsam_points/factors/bundle_adjustment_factor_evm.cpp
-index 594af92..fef2b68 100644
+index 594af92..2198209 100644
 --- a/src/gtsam_points/factors/bundle_adjustment_factor_evm.cpp
 +++ b/src/gtsam_points/factors/bundle_adjustment_factor_evm.cpp
 @@ -109,7 +109,7 @@ gtsam::GaussianFactor::shared_ptr EVMBundleAdjustmentFactorBase::compose_factor(
@@ -340,12 +346,12 @@ index 594af92..fef2b68 100644
    }
  
 -  return gtsam::make_shared<gtsam::HessianFactor>(keys_, Gs, gs, error);
-+  return gtsam_points::make_shared<gtsam::HessianFactor>(keys_, Gs, gs, error);
++  return gtsam_points::make_shared_ptr<gtsam::HessianFactor>(keys_, Gs, gs, error);
  }
  
  /**
 diff --git a/src/gtsam_points/factors/bundle_adjustment_factor_lsq.cpp b/src/gtsam_points/factors/bundle_adjustment_factor_lsq.cpp
-index fc1157c..a201ec7 100644
+index fc1157c..925e9d6 100644
 --- a/src/gtsam_points/factors/bundle_adjustment_factor_lsq.cpp
 +++ b/src/gtsam_points/factors/bundle_adjustment_factor_lsq.cpp
 @@ -3,6 +3,7 @@
@@ -361,12 +367,12 @@ index fc1157c..a201ec7 100644
    }
  
 -  return gtsam::make_shared<gtsam::HessianFactor>(keys_, Hs, bs, sum_errors);
-+  return gtsam_points::make_shared<gtsam::HessianFactor>(keys_, Hs, bs, sum_errors);
++  return gtsam_points::make_shared_ptr<gtsam::HessianFactor>(keys_, Hs, bs, sum_errors);
  }
  
  void LsqBundleAdjustmentFactor::update_global_distribution(const gtsam::Values& values) const {
 diff --git a/src/gtsam_points/factors/integrated_vgicp_factor_gpu.cpp b/src/gtsam_points/factors/integrated_vgicp_factor_gpu.cpp
-index 24e66ce..0e384b5 100644
+index 24e66ce..44c6a4b 100644
 --- a/src/gtsam_points/factors/integrated_vgicp_factor_gpu.cpp
 +++ b/src/gtsam_points/factors/integrated_vgicp_factor_gpu.cpp
 @@ -121,10 +121,10 @@ double IntegratedVGICPFactorGPU::inlier_fraction() const {
@@ -374,16 +380,16 @@ index 24e66ce..0e384b5 100644
  gtsam::NonlinearFactor::shared_ptr IntegratedVGICPFactorGPU::clone() const {
    if (is_binary) {
 -    return gtsam::make_shared<IntegratedVGICPFactorGPU>(keys()[0], keys()[1], target, source, nullptr, nullptr);
-+    return gtsam_points::make_shared<IntegratedVGICPFactorGPU>(keys()[0], keys()[1], target, source, nullptr, nullptr);
++    return gtsam_points::make_shared_ptr<IntegratedVGICPFactorGPU>(keys()[0], keys()[1], target, source, nullptr, nullptr);
    }
  
 -  return gtsam::make_shared<IntegratedVGICPFactorGPU>(
-+  return gtsam_points::make_shared<IntegratedVGICPFactorGPU>(
++  return gtsam_points::make_shared_ptr<IntegratedVGICPFactorGPU>(
      gtsam::Pose3(fixed_target_pose.cast<double>().matrix()),
      keys()[0],
      target,
 diff --git a/src/gtsam_points/factors/reintegrated_imu_factor.cpp b/src/gtsam_points/factors/reintegrated_imu_factor.cpp
-index 83b7b32..a187527 100644
+index 83b7b32..4771fd0 100644
 --- a/src/gtsam_points/factors/reintegrated_imu_factor.cpp
 +++ b/src/gtsam_points/factors/reintegrated_imu_factor.cpp
 @@ -81,7 +81,7 @@ gtsam::ImuFactor::shared_ptr ReintegratedImuFactor::create_imu_factor(const gtsa
@@ -391,7 +397,7 @@ index 83b7b32..a187527 100644
    }
  
 -  return gtsam::make_shared<gtsam::ImuFactor>(keys()[0], keys()[1], keys()[2], keys()[3], keys()[4], pim);
-+  return gtsam_points::make_shared<gtsam::ImuFactor>(keys()[0], keys()[1], keys()[2], keys()[3], keys()[4], pim);
++  return gtsam_points::make_shared_ptr<gtsam::ImuFactor>(keys()[0], keys()[1], keys()[2], keys()[3], keys()[4], pim);
  }
  
  }  // namespace gtsam_points
@@ -523,7 +529,7 @@ index 0bb9a69..8d4a9b4 100644
    }
  
 diff --git a/src/test/experimental/test_colored.cpp b/src/test/experimental/test_colored.cpp
-index dcad87a..ad03fe8 100644
+index dcad87a..282ae51 100644
 --- a/src/test/experimental/test_colored.cpp
 +++ b/src/test/experimental/test_colored.cpp
 @@ -103,9 +103,9 @@ int main(int argc, char** argv) {
@@ -531,10 +537,10 @@ index dcad87a..ad03fe8 100644
    graph.emplace_shared<gtsam::PriorFactor<gtsam::Pose3>>(0, gtsam::Pose3::Identity(), gtsam::noiseModel::Isotropic::Precision(6, 1e6));
  
 -  auto f = gtsam::make_shared<gtsam_points::IntegratedColoredGICPFactor>(0, 1, target, source, target_tree, target_gradients);
-+  auto f = gtsam_points::make_shared<gtsam_points::IntegratedColoredGICPFactor>(0, 1, target, source, target_tree, target_gradients);
++  auto f = gtsam_points::make_shared_ptr<gtsam_points::IntegratedColoredGICPFactor>(0, 1, target, source, target_tree, target_gradients);
    f->set_photometric_term_weight(0.75);
 -  // auto f = gtsam::make_shared<gtsam_points::IntegratedGICPFactor>(0, 1, target, source);
-+  // auto f = gtsam_points::make_shared<gtsam_points::IntegratedGICPFactor>(0, 1, target, source);
++  // auto f = gtsam_points::make_shared_ptr<gtsam_points::IntegratedGICPFactor>(0, 1, target, source);
    f->set_num_threads(12);
    graph.add(f);
  
@@ -543,12 +549,12 @@ index dcad87a..ad03fe8 100644
    graph.emplace_shared<gtsam::PriorFactor<gtsam::Pose3>>(0, gtsam::Pose3::Identity(), gtsam::noiseModel::Isotropic::Precision(6, 1e6));
  
 -  auto f = gtsam::make_shared<gtsam_points::IntegratedColoredGICPFactor>(0, 1, target, source, target_tree, target_gradients);
-+  auto f = gtsam_points::make_shared<gtsam_points::IntegratedColoredGICPFactor>(0, 1, target, source, target_tree, target_gradients);
++  auto f = gtsam_points::make_shared_ptr<gtsam_points::IntegratedColoredGICPFactor>(0, 1, target, source, target_tree, target_gradients);
    f->set_num_threads(12);
    graph.add(f);
    // graph.emplace_shared<gtsam_points::IntegratedGICPFactor>(0, 1, target, source, target_tree);
 diff --git a/src/test/experimental/test_damping.cpp b/src/test/experimental/test_damping.cpp
-index 1b81e9f..da7b1a8 100644
+index 1b81e9f..0de597b 100644
 --- a/src/test/experimental/test_damping.cpp
 +++ b/src/test/experimental/test_damping.cpp
 @@ -27,9 +27,9 @@ int main(int argc, char** argv) {
@@ -556,15 +562,15 @@ index 1b81e9f..da7b1a8 100644
    gtsam::Matrix6 G = 10.0 * gtsam::Matrix6::Identity();
    gtsam::Vector6 g = gtsam::Vector6::Zero();
 -  // graph.at(1) = gtsam::make_shared<gtsam::LinearContainerFactor>(gtsam::HessianFactor(0, G, g, 0.0));
-+  // graph.at(1) = gtsam_points::make_shared<gtsam::LinearContainerFactor>(gtsam::HessianFactor(0, G, g, 0.0));
++  // graph.at(1) = gtsam_points::make_shared_ptr<gtsam::LinearContainerFactor>(gtsam::HessianFactor(0, G, g, 0.0));
  
 -  graph.at(1) = gtsam::make_shared<gtsam_points::LinearDampingFactor>(0, 6, 10.0);
-+  graph.at(1) = gtsam_points::make_shared<gtsam_points::LinearDampingFactor>(0, 6, 10.0);
++  graph.at(1) = gtsam_points::make_shared_ptr<gtsam_points::LinearDampingFactor>(0, 6, 10.0);
  
    gtsam_points::LevenbergMarquardtOptimizerExt(graph, values, lm_params).optimize();
    
 diff --git a/src/test/experimental/test_interpolation.cpp b/src/test/experimental/test_interpolation.cpp
-index fb83df2..54b3ebd 100644
+index fb83df2..75ac4ac 100644
 --- a/src/test/experimental/test_interpolation.cpp
 +++ b/src/test/experimental/test_interpolation.cpp
 @@ -39,7 +39,7 @@ int main(int argc, char** argv) {
@@ -572,7 +578,7 @@ index fb83df2..54b3ebd 100644
    /*
    auto noise_model = gtsam::noiseModel::Isotropic::Precision(6, 1.0);
 -  auto factor = gtsam::make_shared<gtsam_points::Pose3InterpolationFactor>(0, 1, 2, t, noise_model);
-+  auto factor = gtsam_points::make_shared<gtsam_points::Pose3InterpolationFactor>(0, 1, 2, t, noise_model);
++  auto factor = gtsam_points::make_shared_ptr<gtsam_points::Pose3InterpolationFactor>(0, 1, 2, t, noise_model);
  
    gtsam::Matrix H_xi, H_xj, H_xk;
    auto error = factor->evaluateError(values.at<gtsam::Pose3>(0), values.at<gtsam::Pose3>(1), values.at<gtsam::Pose3>(2), H_xi, H_xj, H_xk);
@@ -581,12 +587,12 @@ index fb83df2..54b3ebd 100644
      const auto error_ = interpolate_(gtsam::Pose3_(0), gtsam::Pose3_(1), gtsam::Pose3_(2), time);
      // gtsam::ExpressionFactor<gtsam::Vector6>(noise_model, gtsam::Vector6::Zero(), error_);
 -    graph[0] = gtsam::make_shared<gtsam::ExpressionFactor<gtsam::Vector6>>(noise_model, gtsam::Vector6::Zero(), error_);
-+    graph[0] = gtsam_points::make_shared<gtsam::ExpressionFactor<gtsam::Vector6>>(noise_model, gtsam::Vector6::Zero(), error_);
++    graph[0] = gtsam_points::make_shared_ptr<gtsam::ExpressionFactor<gtsam::Vector6>>(noise_model, gtsam::Vector6::Zero(), error_);
      optimized = gtsam::LevenbergMarquardtOptimizer(graph, values, lm_params).optimize();
  
      const gtsam::Pose3 xk = optimized.at<gtsam::Pose3>(2);
 diff --git a/src/test/experimental/test_ivox.cpp b/src/test/experimental/test_ivox.cpp
-index a8cdb5f..c2aa788 100644
+index a8cdb5f..2142ec4 100644
 --- a/src/test/experimental/test_ivox.cpp
 +++ b/src/test/experimental/test_ivox.cpp
 @@ -55,7 +55,7 @@ int main(int argc, char** argv) {
@@ -594,12 +600,12 @@ index a8cdb5f..c2aa788 100644
        graph.emplace_shared<gtsam::PriorFactor<gtsam::Pose3>>(0, gtsam::Pose3(), gtsam::noiseModel::Isotropic::Precision(6, 1e6));
  
 -      auto factor = gtsam::make_shared<gtsam_points::IntegratedLOAMFactor_<gtsam_points::iVox, gtsam_points::PointCloud>>(
-+      auto factor = gtsam_points::make_shared<gtsam_points::IntegratedLOAMFactor_<gtsam_points::iVox, gtsam_points::PointCloud>>(
++      auto factor = gtsam_points::make_shared_ptr<gtsam_points::IntegratedLOAMFactor_<gtsam_points::iVox, gtsam_points::PointCloud>>(
          0,
          1,
          ivox_edges,
 diff --git a/src/test/experimental/test_marginalization.cpp b/src/test/experimental/test_marginalization.cpp
-index 4694525..6ecb6f9 100644
+index 4694525..d5f91c3 100644
 --- a/src/test/experimental/test_marginalization.cpp
 +++ b/src/test/experimental/test_marginalization.cpp
 @@ -91,7 +91,7 @@ int main(int argc, char** argv) {
@@ -607,12 +613,12 @@ index 4694525..6ecb6f9 100644
    return 0;
  
 -  auto factor = gtsam::make_shared<gtsam::BetweenFactor<gtsam::Pose3>>(0, 1, gtsam::Pose3(), gtsam::noiseModel::Isotropic::Precision(6, 1e3));
-+  auto factor = gtsam_points::make_shared<gtsam::BetweenFactor<gtsam::Pose3>>(0, 1, gtsam::Pose3(), gtsam::noiseModel::Isotropic::Precision(6, 1e3));
++  auto factor = gtsam_points::make_shared_ptr<gtsam::BetweenFactor<gtsam::Pose3>>(0, 1, gtsam::Pose3(), gtsam::noiseModel::Isotropic::Precision(6, 1e3));
  
    gtsam::Values values;
    values.insert(0, gtsam::Pose3::Expmap(gtsam::Vector6::Random()));
 diff --git a/src/test/test_colored_gicp.cpp b/src/test/test_colored_gicp.cpp
-index 5fd1421..db05854 100644
+index 5fd1421..45dcdbc 100644
 --- a/src/test/test_colored_gicp.cpp
 +++ b/src/test/test_colored_gicp.cpp
 @@ -150,15 +150,15 @@ TEST_P(ColoredGICPTest, AlignmentTest) {
@@ -620,22 +626,22 @@ index 5fd1421..db05854 100644
      new gtsam_points::IntensityKdTree(target->points, target->intensities, target->size()));
  
 -  auto f1 = gtsam::make_shared<gtsam_points::IntegratedColoredGICPFactor>(0, 1, target, source, target_tree, target_gradients);
-+  auto f1 = gtsam_points::make_shared<gtsam_points::IntegratedColoredGICPFactor>(0, 1, target, source, target_tree, target_gradients);
++  auto f1 = gtsam_points::make_shared_ptr<gtsam_points::IntegratedColoredGICPFactor>(0, 1, target, source, target_tree, target_gradients);
    f1->set_num_threads(num_threads);
    test_factor(f1, "DEFAULT");
  
 -  auto f2 = gtsam::make_shared<gtsam_points::IntegratedColoredGICPFactor>(0, 1, target, source, target_intensity_tree, target_gradients);
-+  auto f2 = gtsam_points::make_shared<gtsam_points::IntegratedColoredGICPFactor>(0, 1, target, source, target_intensity_tree, target_gradients);
++  auto f2 = gtsam_points::make_shared_ptr<gtsam_points::IntegratedColoredGICPFactor>(0, 1, target, source, target_intensity_tree, target_gradients);
    f2->set_num_threads(num_threads);
    test_factor(f2, "ESTIMATE_PHOTO_AND_GEOM");
  
 -  auto f3 = gtsam::make_shared<gtsam_points::IntegratedColoredGICPFactor>(0, 1, target, source, target_intensity_tree, target_gradients2);
-+  auto f3 = gtsam_points::make_shared<gtsam_points::IntegratedColoredGICPFactor>(0, 1, target, source, target_intensity_tree, target_gradients2);
++  auto f3 = gtsam_points::make_shared_ptr<gtsam_points::IntegratedColoredGICPFactor>(0, 1, target, source, target_intensity_tree, target_gradients2);
    f3->set_num_threads(num_threads);
    test_factor(f3, "ESTIMATE_PHOTO_ONLY");
  }
 diff --git a/src/test/test_compact_mahalanobis.cpp b/src/test/test_compact_mahalanobis.cpp
-index 80acbff..d89fd53 100644
+index 80acbff..2119e35 100644
 --- a/src/test/test_compact_mahalanobis.cpp
 +++ b/src/test/test_compact_mahalanobis.cpp
 @@ -3,7 +3,7 @@
@@ -652,34 +658,34 @@ index 80acbff..d89fd53 100644
  
      if (method == "GICP") {
 -      auto factor_full = gtsam::make_shared<gtsam_points::IntegratedGICPFactor>(0, 1, target, source, target_tree);
-+      auto factor_full = gtsam_points::make_shared<gtsam_points::IntegratedGICPFactor>(0, 1, target, source, target_tree);
++      auto factor_full = gtsam_points::make_shared_ptr<gtsam_points::IntegratedGICPFactor>(0, 1, target, source, target_tree);
        factor_full->set_fused_cov_cache_mode(gtsam_points::FusedCovCacheMode::FULL);
  
 -      auto factor_compact = gtsam::make_shared<gtsam_points::IntegratedGICPFactor>(0, 1, target, source, target_tree);
-+      auto factor_compact = gtsam_points::make_shared<gtsam_points::IntegratedGICPFactor>(0, 1, target, source, target_tree);
++      auto factor_compact = gtsam_points::make_shared_ptr<gtsam_points::IntegratedGICPFactor>(0, 1, target, source, target_tree);
        factor_compact->set_fused_cov_cache_mode(gtsam_points::FusedCovCacheMode::COMPACT);
  
 -      auto factor_none = gtsam::make_shared<gtsam_points::IntegratedGICPFactor>(0, 1, target, source, target_tree);
-+      auto factor_none = gtsam_points::make_shared<gtsam_points::IntegratedGICPFactor>(0, 1, target, source, target_tree);
++      auto factor_none = gtsam_points::make_shared_ptr<gtsam_points::IntegratedGICPFactor>(0, 1, target, source, target_tree);
        factor_none->set_fused_cov_cache_mode(gtsam_points::FusedCovCacheMode::NONE);
  
        return {factor_full, factor_compact, factor_none};
      } else if (method == "VGICP") {
 -      auto factor_full = gtsam::make_shared<gtsam_points::IntegratedVGICPFactor>(0, 1, target_voxels, source);
-+      auto factor_full = gtsam_points::make_shared<gtsam_points::IntegratedVGICPFactor>(0, 1, target_voxels, source);
++      auto factor_full = gtsam_points::make_shared_ptr<gtsam_points::IntegratedVGICPFactor>(0, 1, target_voxels, source);
        factor_full->set_fused_cov_cache_mode(gtsam_points::FusedCovCacheMode::FULL);
  
 -      auto factor_compact = gtsam::make_shared<gtsam_points::IntegratedVGICPFactor>(0, 1, target_voxels, source);
-+      auto factor_compact = gtsam_points::make_shared<gtsam_points::IntegratedVGICPFactor>(0, 1, target_voxels, source);
++      auto factor_compact = gtsam_points::make_shared_ptr<gtsam_points::IntegratedVGICPFactor>(0, 1, target_voxels, source);
        factor_compact->set_fused_cov_cache_mode(gtsam_points::FusedCovCacheMode::COMPACT);
  
 -      auto factor_none = gtsam::make_shared<gtsam_points::IntegratedVGICPFactor>(0, 1, target_voxels, source);
-+      auto factor_none = gtsam_points::make_shared<gtsam_points::IntegratedVGICPFactor>(0, 1, target_voxels, source);
++      auto factor_none = gtsam_points::make_shared_ptr<gtsam_points::IntegratedVGICPFactor>(0, 1, target_voxels, source);
        factor_none->set_fused_cov_cache_mode(gtsam_points::FusedCovCacheMode::NONE);
  
        return {factor_full, factor_compact, factor_none};
 diff --git a/src/test/test_continuous_time.cpp b/src/test/test_continuous_time.cpp
-index 64e8476..578898e 100644
+index 64e8476..1283a2a 100644
 --- a/src/test/test_continuous_time.cpp
 +++ b/src/test/test_continuous_time.cpp
 @@ -108,11 +108,11 @@ TEST_P(ContinuousTimeFactorTest, AlignmentTest) {
@@ -687,17 +693,17 @@ index 64e8476..578898e 100644
      gtsam_points::IntegratedCT_ICPFactor::shared_ptr factor;
      if (method == "CTICP") {
 -      auto f = gtsam::make_shared<gtsam_points::IntegratedCT_ICPFactor>(0, 1, target, source);
-+      auto f = gtsam_points::make_shared<gtsam_points::IntegratedCT_ICPFactor>(0, 1, target, source);
++      auto f = gtsam_points::make_shared_ptr<gtsam_points::IntegratedCT_ICPFactor>(0, 1, target, source);
        f->set_num_threads(num_threads);
        factor = f;
      } else if (method == "CTGICP") {
 -      auto f = gtsam::make_shared<gtsam_points::IntegratedCT_GICPFactor>(0, 1, target, source);
-+      auto f = gtsam_points::make_shared<gtsam_points::IntegratedCT_GICPFactor>(0, 1, target, source);
++      auto f = gtsam_points::make_shared_ptr<gtsam_points::IntegratedCT_GICPFactor>(0, 1, target, source);
        f->set_num_threads(num_threads);
        factor = f;
      }
 diff --git a/src/test/test_loam_factors.cpp b/src/test/test_loam_factors.cpp
-index cfc31ec..97cdf7c 100644
+index cfc31ec..5ab3f98 100644
 --- a/src/test/test_loam_factors.cpp
 +++ b/src/test/test_loam_factors.cpp
 @@ -85,15 +85,15 @@ public:
@@ -705,22 +711,22 @@ index cfc31ec..97cdf7c 100644
      if (method == "LOAM") {
        auto f =
 -        gtsam::make_shared<gtsam_points::IntegratedLOAMFactor>(target_key, source_key, target_edges, target_planes, source_edges, source_planes);
-+        gtsam_points::make_shared<gtsam_points::IntegratedLOAMFactor>(target_key, source_key, target_edges, target_planes, source_edges, source_planes);
++        gtsam_points::make_shared_ptr<gtsam_points::IntegratedLOAMFactor>(target_key, source_key, target_edges, target_planes, source_edges, source_planes);
        f->set_num_threads(num_threads);
        factor = f;
      } else if (method == "EDGE") {
 -      auto f = gtsam::make_shared<gtsam_points::IntegratedPointToEdgeFactor>(target_key, source_key, target_edges, source_edges);
-+      auto f = gtsam_points::make_shared<gtsam_points::IntegratedPointToEdgeFactor>(target_key, source_key, target_edges, source_edges);
++      auto f = gtsam_points::make_shared_ptr<gtsam_points::IntegratedPointToEdgeFactor>(target_key, source_key, target_edges, source_edges);
        f->set_num_threads(num_threads);
        factor = f;
      } else if (method == "PLANE") {
 -      auto f = gtsam::make_shared<gtsam_points::IntegratedPointToPlaneFactor>(target_key, source_key, target_planes, source_planes);
-+      auto f = gtsam_points::make_shared<gtsam_points::IntegratedPointToPlaneFactor>(target_key, source_key, target_planes, source_planes);
++      auto f = gtsam_points::make_shared_ptr<gtsam_points::IntegratedPointToPlaneFactor>(target_key, source_key, target_planes, source_planes);
        f->set_num_threads(num_threads);
        factor = f;
      }
 diff --git a/src/test/test_matching_cost_factors.cpp b/src/test/test_matching_cost_factors.cpp
-index 427078a..365be88 100644
+index 427078a..b5bfdd7 100644
 --- a/src/test/test_matching_cost_factors.cpp
 +++ b/src/test/test_matching_cost_factors.cpp
 @@ -133,15 +133,15 @@ public:
@@ -728,17 +734,17 @@ index 427078a..365be88 100644
      gtsam::NonlinearFactor::shared_ptr factor;
      if (method == "ICP") {
 -      auto f = gtsam::make_shared<gtsam_points::IntegratedICPFactor>(target_key, source_key, target, source);
-+      auto f = gtsam_points::make_shared<gtsam_points::IntegratedICPFactor>(target_key, source_key, target, source);
++      auto f = gtsam_points::make_shared_ptr<gtsam_points::IntegratedICPFactor>(target_key, source_key, target, source);
        f->set_num_threads(num_threads);
        factor = f;
      } else if (method == "GICP") {
 -      auto f = gtsam::make_shared<gtsam_points::IntegratedGICPFactor>(target_key, source_key, target, source);
-+      auto f = gtsam_points::make_shared<gtsam_points::IntegratedGICPFactor>(target_key, source_key, target, source);
++      auto f = gtsam_points::make_shared_ptr<gtsam_points::IntegratedGICPFactor>(target_key, source_key, target, source);
        f->set_num_threads(num_threads);
        factor = f;
      } else if (method == "VGICP") {
 -      auto f = gtsam::make_shared<gtsam_points::IntegratedVGICPFactor>(target_key, source_key, target_voxelmap, source);
-+      auto f = gtsam_points::make_shared<gtsam_points::IntegratedVGICPFactor>(target_key, source_key, target_voxelmap, source);
++      auto f = gtsam_points::make_shared_ptr<gtsam_points::IntegratedVGICPFactor>(target_key, source_key, target_voxelmap, source);
        f->set_num_threads(num_threads);
        factor = f;
      } else if (method == "VGICP_CUDA") {
@@ -747,17 +753,17 @@ index 427078a..365be88 100644
      gtsam::NonlinearFactor::shared_ptr factor;
      if (method == "ICP") {
 -      auto f = gtsam::make_shared<gtsam_points::IntegratedICPFactor>(fixed_target_pose, source_key, target, source);
-+      auto f = gtsam_points::make_shared<gtsam_points::IntegratedICPFactor>(fixed_target_pose, source_key, target, source);
++      auto f = gtsam_points::make_shared_ptr<gtsam_points::IntegratedICPFactor>(fixed_target_pose, source_key, target, source);
        f->set_num_threads(num_threads);
        factor = f;
      } else if (method == "GICP") {
 -      auto f = gtsam::make_shared<gtsam_points::IntegratedGICPFactor>(fixed_target_pose, source_key, target, source);
-+      auto f = gtsam_points::make_shared<gtsam_points::IntegratedGICPFactor>(fixed_target_pose, source_key, target, source);
++      auto f = gtsam_points::make_shared_ptr<gtsam_points::IntegratedGICPFactor>(fixed_target_pose, source_key, target, source);
        f->set_num_threads(num_threads);
        factor = f;
      } else if (method == "VGICP") {
 -      auto f = gtsam::make_shared<gtsam_points::IntegratedVGICPFactor>(fixed_target_pose, source_key, target_voxelmap, source);
-+      auto f = gtsam_points::make_shared<gtsam_points::IntegratedVGICPFactor>(fixed_target_pose, source_key, target_voxelmap, source);
++      auto f = gtsam_points::make_shared_ptr<gtsam_points::IntegratedVGICPFactor>(fixed_target_pose, source_key, target_voxelmap, source);
        f->set_num_threads(num_threads);
        factor = f;
      } else if (method == "VGICP_CUDA") {
