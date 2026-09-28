@@ -1,5 +1,2 @@
-channel_sources:
-- conda-forge/label/gtsam_dev,conda-forge
 gtsam:
-- '4.2.*'
-- '4.3deva1'
+- '4.3.*'

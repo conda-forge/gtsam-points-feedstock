@@ -3,7 +3,7 @@ schema_version: 1
 context:
   name: gtsam-points
   version: "1.2.2"
-  build_number: 2
+  build_number: 3
 
 recipe:
   name: ${{ name|lower }}-split
@@ -94,11 +94,6 @@ outputs:
             # It prevents the solver from picking the prioritized CUDA build on a CPU-only machine,
             # forcing a graceful fallback to the CPU build.
             - __cuda
-        # Override the run exports of gtsam alpha.
-        # We want the gtsam-points build to be compatible only with other dev gtsam version, not stable ones.
-        - if: match(gtsam, ">=4.3deva1,<4.3.0")
-          then:
-            - gtsam >=4.3deva1,<4.3.0
       ignore_run_exports:
         by_name:
           - if: cuda_compiler_version != "None"
@@ -107,10 +102,6 @@ outputs:
               - libcurand
               - libcusparse
               - libcusolver
-        from_package:
-          - if: match(gtsam, ">=4.3deva1,<4.3.0")
-            then:
-              - gtsam
     tests:
       - package_contents:
           include:
