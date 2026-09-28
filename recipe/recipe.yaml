@@ -17,6 +17,8 @@ source:
       # Fix segfault in align_points_4dof with Eigen 5 (invalid runtime
       # arguments passed to the fixed-size topLeftCorner<2, 2> accessor).
       - 002-fix-eigen5-4dof-alignment.patch
+      # Port to GTSAM 4.3.0, keeping GTSAM 4.2 and 4.3a1 working.
+      - 003-support-gtsam-4.3.0.patch
 
 build:
   number: ${{ build_number }}
