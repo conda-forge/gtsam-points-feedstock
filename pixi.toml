@@ -5,7 +5,7 @@
 
 [workspace]
 name = "gtsam-points-feedstock"
-version = "2026.8.9"  # conda-smithy version used to generate this file
+version = "2026.9.23"  # conda-smithy version used to generate this file
 description = "Pixi configuration for conda-forge/gtsam-points-feedstock"
 authors = ["@conda-forge/gtsam-points"]
 channels = ["conda-forge"]
@@ -38,56 +38,56 @@ description = "List contents of all packages found in rattler-build build direct
 cmd = "rattler-build build --recipe recipe"
 description = "Build gtsam-points-feedstock directly (without setup scripts), no particular variant specified"
 [feature.build.tasks."build-linux_64_cuda_compiler_version12.9cxx_compiler_version14"]
-cmd = "rattler-build build --recipe recipe -m .ci_support/linux_64_cuda_compiler_version12.9cxx_compiler_version14.yaml"
+cmd = "rattler-build build --recipe recipe -m .ci_support/linux_64_cuda_compiler_version12.9cxx_compiler_version14.yaml --target-platform linux-64"
 description = "Build gtsam-points-feedstock with variant linux_64_cuda_compiler_version12.9cxx_compiler_version14 directly (without setup scripts)"
 [feature.build.tasks."debug-linux_64_cuda_compiler_version12.9cxx_compiler_version14"]
-cmd = "rattler-build debug setup --recipe recipe -m .ci_support/linux_64_cuda_compiler_version12.9cxx_compiler_version14.yaml"
-description = "Build gtsam-points-feedstock with variant linux_64_cuda_compiler_version12.9cxx_compiler_version14 directly (without setup scripts)"
+cmd = "rattler-build debug setup --recipe recipe -m .ci_support/linux_64_cuda_compiler_version12.9cxx_compiler_version14.yaml --target-platform linux-64"
+description = "Debug gtsam-points-feedstock with variant linux_64_cuda_compiler_version12.9cxx_compiler_version14 directly (without setup scripts)"
 [feature.build.tasks."inspect-linux_64_cuda_compiler_version12.9cxx_compiler_version14"]
 cmd = "inspect_artifacts --recipe-dir recipe -m .ci_support/linux_64_cuda_compiler_version12.9cxx_compiler_version14.yaml"
 description = "List contents of gtsam-points-feedstock packages built for variant linux_64_cuda_compiler_version12.9cxx_compiler_version14"
-[feature.build.tasks."build-linux_64_cuda_compiler_version13.0cxx_compiler_version15"]
-cmd = "rattler-build build --recipe recipe -m .ci_support/linux_64_cuda_compiler_version13.0cxx_compiler_version15.yaml"
-description = "Build gtsam-points-feedstock with variant linux_64_cuda_compiler_version13.0cxx_compiler_version15 directly (without setup scripts)"
-[feature.build.tasks."debug-linux_64_cuda_compiler_version13.0cxx_compiler_version15"]
-cmd = "rattler-build debug setup --recipe recipe -m .ci_support/linux_64_cuda_compiler_version13.0cxx_compiler_version15.yaml"
-description = "Build gtsam-points-feedstock with variant linux_64_cuda_compiler_version13.0cxx_compiler_version15 directly (without setup scripts)"
-[feature.build.tasks."inspect-linux_64_cuda_compiler_version13.0cxx_compiler_version15"]
-cmd = "inspect_artifacts --recipe-dir recipe -m .ci_support/linux_64_cuda_compiler_version13.0cxx_compiler_version15.yaml"
-description = "List contents of gtsam-points-feedstock packages built for variant linux_64_cuda_compiler_version13.0cxx_compiler_version15"
+[feature.build.tasks."build-linux_64_cuda_compiler_version13.4cxx_compiler_version15"]
+cmd = "rattler-build build --recipe recipe -m .ci_support/linux_64_cuda_compiler_version13.4cxx_compiler_version15.yaml --target-platform linux-64"
+description = "Build gtsam-points-feedstock with variant linux_64_cuda_compiler_version13.4cxx_compiler_version15 directly (without setup scripts)"
+[feature.build.tasks."debug-linux_64_cuda_compiler_version13.4cxx_compiler_version15"]
+cmd = "rattler-build debug setup --recipe recipe -m .ci_support/linux_64_cuda_compiler_version13.4cxx_compiler_version15.yaml --target-platform linux-64"
+description = "Debug gtsam-points-feedstock with variant linux_64_cuda_compiler_version13.4cxx_compiler_version15 directly (without setup scripts)"
+[feature.build.tasks."inspect-linux_64_cuda_compiler_version13.4cxx_compiler_version15"]
+cmd = "inspect_artifacts --recipe-dir recipe -m .ci_support/linux_64_cuda_compiler_version13.4cxx_compiler_version15.yaml"
+description = "List contents of gtsam-points-feedstock packages built for variant linux_64_cuda_compiler_version13.4cxx_compiler_version15"
 [feature.build.tasks."build-linux_64_cuda_compiler_versionNonecxx_compiler_version15"]
-cmd = "rattler-build build --recipe recipe -m .ci_support/linux_64_cuda_compiler_versionNonecxx_compiler_version15.yaml"
+cmd = "rattler-build build --recipe recipe -m .ci_support/linux_64_cuda_compiler_versionNonecxx_compiler_version15.yaml --target-platform linux-64"
 description = "Build gtsam-points-feedstock with variant linux_64_cuda_compiler_versionNonecxx_compiler_version15 directly (without setup scripts)"
 [feature.build.tasks."debug-linux_64_cuda_compiler_versionNonecxx_compiler_version15"]
-cmd = "rattler-build debug setup --recipe recipe -m .ci_support/linux_64_cuda_compiler_versionNonecxx_compiler_version15.yaml"
-description = "Build gtsam-points-feedstock with variant linux_64_cuda_compiler_versionNonecxx_compiler_version15 directly (without setup scripts)"
+cmd = "rattler-build debug setup --recipe recipe -m .ci_support/linux_64_cuda_compiler_versionNonecxx_compiler_version15.yaml --target-platform linux-64"
+description = "Debug gtsam-points-feedstock with variant linux_64_cuda_compiler_versionNonecxx_compiler_version15 directly (without setup scripts)"
 [feature.build.tasks."inspect-linux_64_cuda_compiler_versionNonecxx_compiler_version15"]
 cmd = "inspect_artifacts --recipe-dir recipe -m .ci_support/linux_64_cuda_compiler_versionNonecxx_compiler_version15.yaml"
 description = "List contents of gtsam-points-feedstock packages built for variant linux_64_cuda_compiler_versionNonecxx_compiler_version15"
 [feature.build.tasks."build-linux_aarch64_cuda_compiler_version12.9cxx_compiler_version14"]
-cmd = "rattler-build build --recipe recipe -m .ci_support/linux_aarch64_cuda_compiler_version12.9cxx_compiler_version14.yaml"
+cmd = "rattler-build build --recipe recipe -m .ci_support/linux_aarch64_cuda_compiler_version12.9cxx_compiler_version14.yaml --target-platform linux-aarch64"
 description = "Build gtsam-points-feedstock with variant linux_aarch64_cuda_compiler_version12.9cxx_compiler_version14 directly (without setup scripts)"
 [feature.build.tasks."debug-linux_aarch64_cuda_compiler_version12.9cxx_compiler_version14"]
-cmd = "rattler-build debug setup --recipe recipe -m .ci_support/linux_aarch64_cuda_compiler_version12.9cxx_compiler_version14.yaml"
-description = "Build gtsam-points-feedstock with variant linux_aarch64_cuda_compiler_version12.9cxx_compiler_version14 directly (without setup scripts)"
+cmd = "rattler-build debug setup --recipe recipe -m .ci_support/linux_aarch64_cuda_compiler_version12.9cxx_compiler_version14.yaml --target-platform linux-aarch64"
+description = "Debug gtsam-points-feedstock with variant linux_aarch64_cuda_compiler_version12.9cxx_compiler_version14 directly (without setup scripts)"
 [feature.build.tasks."inspect-linux_aarch64_cuda_compiler_version12.9cxx_compiler_version14"]
 cmd = "inspect_artifacts --recipe-dir recipe -m .ci_support/linux_aarch64_cuda_compiler_version12.9cxx_compiler_version14.yaml"
 description = "List contents of gtsam-points-feedstock packages built for variant linux_aarch64_cuda_compiler_version12.9cxx_compiler_version14"
-[feature.build.tasks."build-linux_aarch64_cuda_compiler_version13.0cxx_compiler_version15"]
-cmd = "rattler-build build --recipe recipe -m .ci_support/linux_aarch64_cuda_compiler_version13.0cxx_compiler_version15.yaml"
-description = "Build gtsam-points-feedstock with variant linux_aarch64_cuda_compiler_version13.0cxx_compiler_version15 directly (without setup scripts)"
-[feature.build.tasks."debug-linux_aarch64_cuda_compiler_version13.0cxx_compiler_version15"]
-cmd = "rattler-build debug setup --recipe recipe -m .ci_support/linux_aarch64_cuda_compiler_version13.0cxx_compiler_version15.yaml"
-description = "Build gtsam-points-feedstock with variant linux_aarch64_cuda_compiler_version13.0cxx_compiler_version15 directly (without setup scripts)"
-[feature.build.tasks."inspect-linux_aarch64_cuda_compiler_version13.0cxx_compiler_version15"]
-cmd = "inspect_artifacts --recipe-dir recipe -m .ci_support/linux_aarch64_cuda_compiler_version13.0cxx_compiler_version15.yaml"
-description = "List contents of gtsam-points-feedstock packages built for variant linux_aarch64_cuda_compiler_version13.0cxx_compiler_version15"
+[feature.build.tasks."build-linux_aarch64_cuda_compiler_version13.4cxx_compiler_version15"]
+cmd = "rattler-build build --recipe recipe -m .ci_support/linux_aarch64_cuda_compiler_version13.4cxx_compiler_version15.yaml --target-platform linux-aarch64"
+description = "Build gtsam-points-feedstock with variant linux_aarch64_cuda_compiler_version13.4cxx_compiler_version15 directly (without setup scripts)"
+[feature.build.tasks."debug-linux_aarch64_cuda_compiler_version13.4cxx_compiler_version15"]
+cmd = "rattler-build debug setup --recipe recipe -m .ci_support/linux_aarch64_cuda_compiler_version13.4cxx_compiler_version15.yaml --target-platform linux-aarch64"
+description = "Debug gtsam-points-feedstock with variant linux_aarch64_cuda_compiler_version13.4cxx_compiler_version15 directly (without setup scripts)"
+[feature.build.tasks."inspect-linux_aarch64_cuda_compiler_version13.4cxx_compiler_version15"]
+cmd = "inspect_artifacts --recipe-dir recipe -m .ci_support/linux_aarch64_cuda_compiler_version13.4cxx_compiler_version15.yaml"
+description = "List contents of gtsam-points-feedstock packages built for variant linux_aarch64_cuda_compiler_version13.4cxx_compiler_version15"
 [feature.build.tasks."build-linux_aarch64_cuda_compiler_versionNonecxx_compiler_version15"]
-cmd = "rattler-build build --recipe recipe -m .ci_support/linux_aarch64_cuda_compiler_versionNonecxx_compiler_version15.yaml"
+cmd = "rattler-build build --recipe recipe -m .ci_support/linux_aarch64_cuda_compiler_versionNonecxx_compiler_version15.yaml --target-platform linux-aarch64"
 description = "Build gtsam-points-feedstock with variant linux_aarch64_cuda_compiler_versionNonecxx_compiler_version15 directly (without setup scripts)"
 [feature.build.tasks."debug-linux_aarch64_cuda_compiler_versionNonecxx_compiler_version15"]
-cmd = "rattler-build debug setup --recipe recipe -m .ci_support/linux_aarch64_cuda_compiler_versionNonecxx_compiler_version15.yaml"
-description = "Build gtsam-points-feedstock with variant linux_aarch64_cuda_compiler_versionNonecxx_compiler_version15 directly (without setup scripts)"
+cmd = "rattler-build debug setup --recipe recipe -m .ci_support/linux_aarch64_cuda_compiler_versionNonecxx_compiler_version15.yaml --target-platform linux-aarch64"
+description = "Debug gtsam-points-feedstock with variant linux_aarch64_cuda_compiler_versionNonecxx_compiler_version15 directly (without setup scripts)"
 [feature.build.tasks."inspect-linux_aarch64_cuda_compiler_versionNonecxx_compiler_version15"]
 cmd = "inspect_artifacts --recipe-dir recipe -m .ci_support/linux_aarch64_cuda_compiler_versionNonecxx_compiler_version15.yaml"
 description = "List contents of gtsam-points-feedstock packages built for variant linux_aarch64_cuda_compiler_versionNonecxx_compiler_version15"

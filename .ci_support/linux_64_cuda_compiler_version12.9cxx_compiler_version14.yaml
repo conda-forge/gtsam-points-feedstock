@@ -7,7 +7,7 @@ c_stdlib:
 c_stdlib_version:
 - '2.17'
 channel_sources:
-- conda-forge/label/gtsam_dev,conda-forge
+- conda-forge
 channel_targets:
 - conda-forge main
 cuda_compiler:
@@ -23,8 +23,7 @@ docker_image:
 eigen_abi_devel:
 - 5.0.1
 gtsam:
-- 4.2.*
-- 4.3deva1
+- 4.3.*
 libboost_devel:
 - '1.90'
 target_platform:
